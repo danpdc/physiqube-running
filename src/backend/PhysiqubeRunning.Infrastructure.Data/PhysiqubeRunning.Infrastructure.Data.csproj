@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PhysiqubeRunning.Application\PhysiqubeRunning.Application.csproj" />
     <ProjectReference Include="..\PhysiqubeRunning.Domain\PhysiqubeRunning.Domain.csproj" />
   </ItemGroup>
 

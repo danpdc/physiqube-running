@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PhysiqubeRunning.Domain\PhysiqubeRunning.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

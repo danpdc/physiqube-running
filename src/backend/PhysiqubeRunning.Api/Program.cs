@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PhysiqubeRunning.Api.Auth;
+using PhysiqubeRunning.Application.Extensions;
 using PhysiqubeRunning.Infrastructure.Data;
 using PhysiqubeRunning.Infrastructure.Data.Extensions;
 
@@ -14,6 +15,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 builder.AddPersistence();
+builder.Services.AddRepositories();
+builder.Services.AddApplicationServices();
 
 // Configure JWT authentication
 var jwtSettings = new JwtSettings();

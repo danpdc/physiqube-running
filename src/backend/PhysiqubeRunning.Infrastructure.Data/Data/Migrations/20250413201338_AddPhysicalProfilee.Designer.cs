@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhysiqubeRunning.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PhysiqubeRunning.Infrastructure.Data;
 namespace PhysiqubeRunning.Infrastructure.Data.Data.Migrations
 {
     [DbContext(typeof(PhysiqubeDbContext))]
-    partial class PhysiqubeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250413201338_AddPhysicalProfilee")]
+    partial class AddPhysicalProfilee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
