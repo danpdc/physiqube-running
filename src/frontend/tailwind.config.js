@@ -27,10 +27,37 @@ module.exports = {
             primary: '#111827',
             secondary: '#4B5563',
           }
-        }
+        },
+        card: {
+          DEFAULT: 'var(--card)',
+          border: 'var(--card-border)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'DM Sans', 'system-ui', 'sans-serif'],
+      },
+      animation: {
+        'bounce-slow': 'bounce 2s infinite',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'slide-in-from-bottom': 'slide-in-from-bottom 0.3s ease-out',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'fade-out': {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+        'slide-in-from-bottom': {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
+      transitionProperty: {
+        'height': 'height',
+        'spacing': 'margin, padding',
       },
     },
   },

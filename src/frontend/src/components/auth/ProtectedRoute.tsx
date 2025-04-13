@@ -1,29 +1,39 @@
-import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { isAuthenticated } from '../../services/authService';
+import React, { useEffect } from 'react';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-
-interface ProtectedRouteProps {
-  children?: React.ReactNode;
-}
+import { isAuthenticated, getAuthToken, getUserData } from '../../services/authService';
 
 /**
- * A component that protects routes by checking if the user is authenticated.
- * Redirects to the login page if not authenticated.
+ * ProtectedRoute component that restricts access to routes based on authentication status.
+ * Redirects unauthenticated users to the login page.
  */
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-
-  if (!isAuthenticated()) {
-    // Show a message when redirecting unauthorized users
-    toast.error('Please log in to access this page');
+  
+  useEffect(() => {
+    // Additional check to ensure token is valid
+    const token = getAuthToken();
+    if (!token) {
+      return; // The main check below will handle redirection
+    }
     
-    // Redirect to login page, but save the location they were trying to access
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Check if there's user data from the token
+    const userData = getUserData();
+    if (!userData) {
+      // Token is invalid or expired - redirect to login
+      toast.error('Your session has expired. Please log in again.');
+      navigate('/login');
+    }
+  }, [navigate]);
+  
+  if (!isAuthenticated()) {
+    // Redirect to login and store the intended destination
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
-
-  // If user is authenticated, render the children or the nested routes via Outlet
-  return children ? <>{children}</> : <Outlet />;
+  
+  // If authenticated, render the child routes
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

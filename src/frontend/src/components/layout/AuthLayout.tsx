@@ -4,9 +4,10 @@ import ThemeToggle from '../ui/ThemeToggle';
 interface AuthLayoutProps {
   children: React.ReactNode;
   title?: string;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full'; // Added maxWidth prop
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, maxWidth = 'md' }) => {
   return (
     <div className="min-h-screen flex flex-col bg-light-background dark:bg-dark-background">
       {/* Header with theme toggle */}
@@ -16,7 +17,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title }) => {
       
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+        <div className={`w-full max-w-${maxWidth}`}>
           {/* Card container */}
           <div className="bg-light-card dark:bg-dark-card rounded-xl shadow-lg overflow-hidden">
             {/* Logo and title area */}

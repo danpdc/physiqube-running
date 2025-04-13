@@ -125,7 +125,7 @@ function App() {
           isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Register />
         } />
         
-        {/* Protected routes */}
+        {/* Protected routes - All routes requiring authentication */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/onboarding" element={<Onboarding />} />

@@ -1,0 +1,122 @@
+/* Custom styles for react-datepicker to match our app theme */
+
+/* Improve text contrast */
+.react-datepicker {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Ensure text in the input has proper contrast */
+.react-datepicker__input-container input {
+  color: inherit !important;
+}
+
+/* Add proper styling for dark mode */
+.dark .react-datepicker {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .react-datepicker__header {
+  background-color: #111827;
+  border-bottom-color: #374151;
+}
+
+.dark .react-datepicker__current-month,
+.dark .react-datepicker__day-name,
+.dark .react-datepicker__day,
+.dark .react-datepicker__time-name,
+.dark .react-datepicker__month-text,
+.dark .react-datepicker__year-text {
+  color: #d1d5db;
+}
+
+.dark .react-datepicker__day:hover,
+.dark .react-datepicker__month-text:hover,
+.dark .react-datepicker__year-text:hover {
+  background-color: #374151;
+}
+
+.dark .react-datepicker__day--selected,
+.dark .react-datepicker__day--keyboard-selected {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* Year and month dropdowns - FIX FOR DROPDOWN TEXT COLOR */
+.react-datepicker__year-dropdown,
+.react-datepicker__month-dropdown {
+  background-color: white;
+  border-color: #d1d5db;
+  color: #111827; /* Ensuring text is dark in light mode */
+}
+
+.react-datepicker__year-option,
+.react-datepicker__month-option {
+  color: #111827; /* Dark text on light background for light mode */
+}
+
+.react-datepicker__year-option:hover,
+.react-datepicker__month-option:hover {
+  background-color: #f3f4f6;
+}
+
+/* Dark mode dropdown fixes */
+.dark .react-datepicker__year-dropdown,
+.dark .react-datepicker__month-dropdown {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .react-datepicker__year-option,
+.dark .react-datepicker__month-option,
+.dark .react-datepicker__year-read-view--down-arrow,
+.dark .react-datepicker__month-read-view--down-arrow {
+  color: #d1d5db; /* Light text on dark background for dark mode */
+}
+
+.dark .react-datepicker__year-option:hover,
+.dark .react-datepicker__month-option:hover {
+  background-color: #374151;
+}
+
+/* Button styling */
+.react-datepicker__navigation-icon::before {
+  border-color: currentColor;
+}
+
+/* Make the contrast better for the custom input */
+.custom-datepicker-input {
+  color: inherit !important;
+}
+
+/* Selected date text contrast */
+.react-datepicker__input-container button {
+  color: inherit !important;
+}
+
+/* Dropdown selectors - additional specificity for better overriding */
+.react-datepicker__month-select,
+.react-datepicker__year-select {
+  color: #111827 !important; /* Dark text for light mode */
+  background-color: white !important;
+}
+
+.dark .react-datepicker__month-select,
+.dark .react-datepicker__year-select {
+  color: #d1d5db !important; /* Light text for dark mode */
+  background-color: #1f2937 !important;
+}
+
+/* Dropdown options */
+.react-datepicker__month-select option,
+.react-datepicker__year-select option {
+  color: #111827;
+  background-color: white;
+}
+
+.dark .react-datepicker__month-select option,
+.dark .react-datepicker__year-select option {
+  color: #d1d5db;
+  background-color: #1f2937;
+}
