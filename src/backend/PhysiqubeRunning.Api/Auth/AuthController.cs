@@ -15,12 +15,15 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly JwtSettings _jwtSettings;
+    private readonly SignInManager<IdentityUser> _signInManager;
 
     public AuthController(
         UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _jwtSettings = jwtSettings.Value;
     }
 
@@ -66,6 +69,57 @@ public class AuthController : ControllerBase
 
         // Return the response
         var response = new RegisterUserResponse
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Token = token
+        };
+
+        return Ok(response);
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginUserRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        // Find user by email
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        
+        if (user == null)
+        {
+            return BadRequest(new { message = "Invalid email or password" });
+        }
+
+        // Check password
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { message = "Invalid email or password" });
+        }
+
+        // Get user claims
+        var userClaims = await _userManager.GetClaimsAsync(user);
+        
+        // Create claims list for the token
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email)
+        };
+        
+        // Add any existing claims
+        claims.AddRange(userClaims);
+        
+        // Generate token
+        var token = GenerateJwtToken(claims);
+
+        // Return the response
+        var response = new LoginUserResponse
         {
             UserId = user.Id,
             Email = user.Email,

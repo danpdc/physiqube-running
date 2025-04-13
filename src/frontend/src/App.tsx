@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import Onboarding from './pages/auth/Onboarding';
 import Dashboard from './pages/dashboard';
 import AuthLayout from './components/layout/AuthLayout';
 import { getGreeting } from './services/api';
+import { Toaster } from 'sonner';
 
 function App() {
   // Check for stored theme preference on initial load
@@ -98,7 +101,7 @@ function App() {
               Sign In
             </a>
             <span className="text-text-light-secondary dark:text-text-secondary">•</span>
-            <a href="/signup" className="text-secondary hover:underline">
+            <a href="/register" className="text-secondary hover:underline">
               Create Account
             </a>
           </div>
@@ -109,9 +112,12 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-center" richColors />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

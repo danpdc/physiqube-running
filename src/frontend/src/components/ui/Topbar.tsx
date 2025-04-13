@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
+import LogoutButton from './LogoutButton';
 
 interface TopbarProps {
   username?: string;
@@ -78,9 +79,9 @@ const Topbar: React.FC<TopbarProps> = ({ username = 'Runner' }) => {
                 Settings
               </a>
               <hr className="my-1 border-gray-200 dark:border-gray-800" />
-              <a href="/logout" className="block px-4 py-2 text-sm hover:bg-light-background dark:hover:bg-dark-background text-red-600 dark:text-red-400">
-                Logout
-              </a>
+              <div className="px-4 py-2 text-sm hover:bg-light-background dark:hover:bg-dark-background">
+                <LogoutButton variant="link" className="w-full text-left text-red-600 dark:text-red-400" />
+              </div>
             </div>
           )}
         </div>

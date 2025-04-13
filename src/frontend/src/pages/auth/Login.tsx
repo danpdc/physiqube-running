@@ -1,26 +1,65 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import AuthLayout from '../../components/layout/AuthLayout';
+import { loginUser, storeAuthToken } from '../../services/authService';
+
+// Zod schema for form validation
+const loginSchema = z.object({
+  email: z.string().min(1, { message: 'Email is required' }).email({ message: 'Must be a valid email' }),
+  password: z.string().min(1, { message: 'Password is required' }),
+  rememberMe: z.boolean().optional(),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      rememberMe: false
+    }
+  });
+  
+  const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login attempt', { email, password });
+    try {
+      const response = await loginUser({
+        email: data.email,
+        password: data.password
+      });
+      
+      // Save token to localStorage
+      storeAuthToken(response.token);
+      
+      toast.success('Login successful!');
+      
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      if (error.response?.data) {
+        const errorMsg = error.response.data.title || error.response.data.message || 'Login failed';
+        toast.error(errorMsg);
+      } else {
+        toast.error('Login failed. Please check your credentials and try again.');
+      }
+    } finally {
       setLoading(false);
-      // Here you would redirect after successful login
-    }, 800);
+    }
   };
   
   return (
     <AuthLayout title="Welcome back! Please sign in to your account.">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-text-light-primary dark:text-text-primary mb-1">
             Email
@@ -28,12 +67,13 @@ const Login: React.FC = () => {
           <input
             id="email"
             type="email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register('email')}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-light-primary dark:text-text-primary"
             placeholder="your@email.com"
-            required
           />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          )}
         </div>
         
         <div>
@@ -43,12 +83,13 @@ const Login: React.FC = () => {
           <input
             id="password"
             type="password" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register('password')}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-light-primary dark:text-text-primary"
             placeholder="••••••••"
-            required
           />
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+          )}
         </div>
         
         <div className="flex items-center justify-between">
@@ -56,6 +97,7 @@ const Login: React.FC = () => {
             <input
               id="remember-me"
               type="checkbox"
+              {...register('rememberMe')}
               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-text-light-secondary dark:text-text-secondary">
@@ -71,13 +113,16 @@ const Login: React.FC = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full btn btn-primary py-2 px-4 flex justify-center"
+          className="w-full btn btn-primary py-2 px-4 flex justify-center items-center"
         >
           {loading ? (
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing in...
+            </>
           ) : 'Sign in'}
         </button>
       </form>
@@ -85,7 +130,7 @@ const Login: React.FC = () => {
       <div className="mt-6 text-center">
         <p className="text-sm text-text-light-secondary dark:text-text-secondary">
           Don't have an account?{' '}
-          <a href="/signup" className="text-secondary hover:underline">
+          <a href="/register" className="text-secondary hover:underline">
             Sign up
           </a>
         </p>
