@@ -1,4 +1,5 @@
 import api from './api';
+import { jwtDecode } from 'jwt-decode';
 
 // Type definitions
 export interface RegisterUserRequest {
@@ -23,6 +24,26 @@ export interface LoginResponse {
   userId: string;
   email: string;
   token: string;
+}
+
+// JWT payload interface
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  FirstName: string;
+  LastName: string;
+  exp: number;
+  [key: string]: any;
+}
+
+// User data interface extracted from token
+export interface UserData {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  initials: string;
 }
 
 /**
@@ -76,11 +97,51 @@ export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
 
+/**
+ * Get user data from the JWT token
+ * @returns User data or null if not authenticated
+ */
+export const getUserData = (): UserData | null => {
+  const token = getAuthToken();
+  
+  if (!token) {
+    return null;
+  }
+  
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    
+    // Check if token is expired
+    const currentTime = Date.now() / 1000;
+    if (decoded.exp < currentTime) {
+      removeAuthToken(); // Remove expired token
+      return null;
+    }
+    
+    // Extract user data from token
+    const firstName = decoded.FirstName || '';
+    const lastName = decoded.LastName || '';
+    
+    return {
+      id: decoded.sub,
+      email: decoded.email,
+      firstName: firstName,
+      lastName: lastName,
+      fullName: `${firstName} ${lastName}`.trim(),
+      initials: `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+    };
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
 export default {
   registerUser,
   loginUser,
   storeAuthToken,
   getAuthToken,
   removeAuthToken,
-  isAuthenticated
+  isAuthenticated,
+  getUserData
 };

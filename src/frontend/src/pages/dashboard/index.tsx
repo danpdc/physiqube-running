@@ -3,7 +3,7 @@ import AppLayout from '../../components/layout/AppLayout';
 
 const Dashboard: React.FC = () => {
   return (
-    <AppLayout username="John">
+    <AppLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-primary">Dashboard</h1>
         

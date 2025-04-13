@@ -20,12 +20,22 @@ var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
-builder.Services.AddAuthentication(options => 
+// Use AddIdentityCore instead of AddIdentity to avoid conflicts
+builder.Services.AddIdentityCore<IdentityUser>(options => 
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
 })
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<PhysiqubeDbContext>()
+.AddDefaultTokenProviders()
+.AddSignInManager<SignInManager<IdentityUser>>();
+
+// Configure JWT authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
@@ -40,18 +50,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
     };
 });
-
-// Configure Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
-{
-    options.Password.RequiredLength = 6;
-    options.Password.RequireDigit = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
-})
-.AddEntityFrameworkStores<PhysiqubeDbContext>()
-.AddDefaultTokenProviders();
 
 // Add CORS policy
 builder.Services.AddCors(options =>

@@ -8,6 +8,8 @@ import Dashboard from './pages/dashboard';
 import AuthLayout from './components/layout/AuthLayout';
 import { getGreeting } from './services/api';
 import { Toaster } from 'sonner';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { isAuthenticated } from './services/authService';
 
 function App() {
   // Check for stored theme preference on initial load
@@ -114,11 +116,22 @@ function App() {
     <Router>
       <Toaster position="top-center" richColors />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/login" element={
+          isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
+        <Route path="/register" element={
+          isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Register />
+        } />
+        
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+        </Route>
+        
+        {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
