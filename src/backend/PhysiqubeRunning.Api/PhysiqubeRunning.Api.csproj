@@ -18,4 +18,8 @@
     <ProjectReference Include="..\PhysiqubeRunning.Infrastructure.Data\PhysiqubeRunning.Infrastructure.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Contracts\" />
+  </ItemGroup>
+
 </Project>
