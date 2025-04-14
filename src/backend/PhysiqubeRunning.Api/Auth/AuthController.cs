@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PhysiqubeRunning.Api.Auth.Contracts;
+using PhysiqubeRunning.Domain.Users;
 
 namespace PhysiqubeRunning.Api.Auth;
 
@@ -13,13 +14,13 @@ namespace PhysiqubeRunning.Api.Auth;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtSettings _jwtSettings;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
 
     public AuthController(
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager,
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager;
@@ -36,7 +37,7 @@ public class AuthController : ControllerBase
         }
 
         // Create the user
-        var user = new IdentityUser
+        var user = new ApplicationUser
         {
             UserName = request.Email,
             Email = request.Email
@@ -105,18 +106,8 @@ public class AuthController : ControllerBase
         // Get user claims
         var userClaims = await _userManager.GetClaimsAsync(user);
         
-        // Create claims list for the token
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email)
-        };
-        
-        // Add any existing claims
-        claims.AddRange(userClaims);
-        
         // Generate token
-        var token = GenerateJwtToken(claims);
+        var token = GenerateJwtToken(userClaims.ToList());
 
         // Return the response
         var response = new LoginUserResponse
@@ -136,7 +127,7 @@ public class AuthController : ControllerBase
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
-            audience: _jwtSettings.Audience,
+            audience: _jwtSettings.Audience[0],
             claims: claims,
             expires: DateTime.Now.AddMinutes(_jwtSettings.ExpiryMinutes),
             signingCredentials: credentials);

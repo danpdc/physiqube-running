@@ -8,7 +8,6 @@ namespace PhysiqubeRunning.Api.Onboarding;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class OnboardingController : ControllerBase
 {
     private readonly ILogger<OnboardingController> _logger;
@@ -20,7 +19,9 @@ public class OnboardingController : ControllerBase
         _onboardingService = onboardingService;
     }
 
-    [HttpPost("userInfo")]
+    [HttpPost]
+    [Route("userInfo")]
+    [Authorize]
     public async Task<IActionResult> SaveUserInfo([FromBody] SaveUserInfoRequest request)
     {
         // Check if model is valid (this uses the validation attributes in the request class)

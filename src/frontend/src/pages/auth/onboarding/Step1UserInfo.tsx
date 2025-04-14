@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Use barrel imports from the ui directory
+// Use barrel imports from the ui directory - removed Alert, AlertDescription, and AlertTitle imports
 import { Button, Label, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider } from '../../../components/ui';
 import { cn } from '../../../lib/utils';
 import { motion } from 'framer-motion';
@@ -7,11 +7,20 @@ import { motion } from 'framer-motion';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './datepicker-custom.css'; // Import custom styles for date picker
+// Import the onboarding service
+import onboardingService from '../../../services/onboardingService';
 
 // Inline SVG icon as a component
 const CalendarIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+  </svg>
+);
+
+// Inline SVG icon for alert notification X to close button
+const XMarkIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
@@ -37,6 +46,7 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
   // Animation control
   const [animationStage, setAnimationStage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<UserData>({
     firstName: userData.firstName,
@@ -75,6 +85,11 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
         delete newErrors[field];
         return newErrors;
       });
+    }
+    
+    // Clear API error when any field changes
+    if (apiError) {
+      setApiError(null);
     }
   };
 
@@ -136,6 +151,7 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
     e.preventDefault();
     if (validateForm()) {
       setIsSubmitting(true);
+      setApiError(null);
       
       // Calculate max HR if not provided but we have age
       if (!formData.maxHeartRate && formData.dateOfBirth) {
@@ -148,12 +164,45 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
         setFormData(prev => ({ ...prev, maxHeartRate: estimatedMaxHR }));
       }
       
-      // Simulate a short delay for better UX
-      setTimeout(() => {
-        updateUserData(formData);
-        onNext();
+      try {
+        // Only send the request if biologicalSex is selected
+        if (formData.biologicalSex) {
+          const response = await onboardingService.saveUserInfo({
+            ...formData, 
+            biologicalSex: formData.biologicalSex as 'male' | 'female' | 'other',
+            fitnessLevel: formData.fitnessLevel as 'beginner' | 'intermediate' | 'advanced' | null
+          });
+          
+          if (response.success) {
+            // Update parent component with the data
+            updateUserData(formData);
+            // Proceed to next step
+            onNext();
+          } else {
+            // Handle API error
+            setApiError(response.message || 'Failed to save user information. Please try again.');
+            
+            // Map backend validation errors to form fields if available
+            if (response.errors) {
+              const fieldErrors: Record<string, string> = {};
+              Object.entries(response.errors).forEach(([key, messages]) => {
+                // Convert API error field name to camelCase to match frontend fields
+                const fieldName = key.charAt(0).toLowerCase() + key.slice(1);
+                fieldErrors[fieldName] = messages[0];
+              });
+              setErrors(fieldErrors);
+            }
+          }
+        } else {
+          // Should not happen due to validation, but just in case
+          setErrors(prev => ({ ...prev, biologicalSex: 'Please select an option' }));
+        }
+      } catch (error) {
+        console.error('Error saving user information:', error);
+        setApiError('An unexpected error occurred. Please try again.');
+      } finally {
         setIsSubmitting(false);
-      }, 500);
+      }
     }
   };
 
@@ -223,6 +272,25 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
           This helps us personalize your experience and training.
         </motion.p>
       </div>
+
+      {/* Custom Error Alert - replacing Alert components */}
+      {apiError && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-red-800 font-medium">Error</h3>
+              <p className="text-red-700 mt-1">{apiError}</p>
+            </div>
+            <button 
+              type="button"
+              className="text-red-500 hover:text-red-700 p-1"
+              onClick={() => setApiError(null)}
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-8">
@@ -318,61 +386,6 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
             </div>
           </motion.div>
 
-          {/* Body Metrics - Appears after short delay */}
-          {animationStage >= 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <h2 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                Body Metrics <span className="text-text-light-secondary dark:text-text-secondary text-sm">(optional)</span>
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Weight */}
-                <div>
-                  <Label htmlFor="weight" className="mb-2 block">
-                    Weight (kg)
-                    <span className="block text-xs text-text-light-secondary dark:text-text-secondary mt-1">
-                      Can be used for calorie burn, BMI
-                    </span>
-                  </Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    value={formData.weight || ''}
-                    onChange={(e) => handleChange('weight', e.target.value ? Number(e.target.value) : undefined)}
-                    className={errors.weight ? 'border-red-500' : ''}
-                  />
-                  {errors.weight && (
-                    <p className="text-red-500 text-sm mt-1">{errors.weight}</p>
-                  )}
-                </div>
-                
-                {/* Height */}
-                <div>
-                  <Label htmlFor="height" className="mb-2 block">
-                    Height (cm)
-                    <span className="block text-xs text-text-light-secondary dark:text-text-secondary mt-1">
-                      Can be used for BMI
-                    </span>
-                  </Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    value={formData.height || ''}
-                    onChange={(e) => handleChange('height', e.target.value ? Number(e.target.value) : undefined)}
-                    className={errors.height ? 'border-red-500' : ''}
-                  />
-                  {errors.height && (
-                    <p className="text-red-500 text-sm mt-1">{errors.height}</p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {/* Heart Rate Details - Appears after short delay */}
           {animationStage >= 2 && (
             <motion.div
@@ -446,6 +459,61 @@ const Step1UserInfo: React.FC<Step1UserInfoProps> = ({ userData, updateUserData,
                   </div>
                   {errors.maxHeartRate && (
                     <p className="text-red-500 text-sm mt-1">{errors.maxHeartRate}</p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Body Metrics - Appears after short delay */}
+          {animationStage >= 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <h2 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                Body Metrics <span className="text-text-light-secondary dark:text-text-secondary text-sm">(optional)</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Weight */}
+                <div>
+                  <Label htmlFor="weight" className="mb-2 block">
+                    Weight (kg)
+                    <span className="block text-xs text-text-light-secondary dark:text-text-secondary mt-1">
+                      Can be used for calorie burn, BMI
+                    </span>
+                  </Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    value={formData.weight || ''}
+                    onChange={(e) => handleChange('weight', e.target.value ? Number(e.target.value) : undefined)}
+                    className={errors.weight ? 'border-red-500' : ''}
+                  />
+                  {errors.weight && (
+                    <p className="text-red-500 text-sm mt-1">{errors.weight}</p>
+                  )}
+                </div>
+                
+                {/* Height */}
+                <div>
+                  <Label htmlFor="height" className="mb-2 block">
+                    Height (cm)
+                    <span className="block text-xs text-text-light-secondary dark:text-text-secondary mt-1">
+                      Can be used for BMI
+                    </span>
+                  </Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    value={formData.height || ''}
+                    onChange={(e) => handleChange('height', e.target.value ? Number(e.target.value) : undefined)}
+                    className={errors.height ? 'border-red-500' : ''}
+                  />
+                  {errors.height && (
+                    <p className="text-red-500 text-sm mt-1">{errors.height}</p>
                   )}
                 </div>
               </div>

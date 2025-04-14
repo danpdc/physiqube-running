@@ -23,9 +23,9 @@ public class PhysiqubeDbContext : IdentityDbContext<ApplicationUser>
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
-        
         // Apply all configurations from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PhysiqubeDbContext).Assembly);
+        
+        base.OnModelCreating(modelBuilder);
     }
 }
